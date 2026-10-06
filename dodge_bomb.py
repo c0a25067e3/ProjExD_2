@@ -44,25 +44,12 @@ def gameover(screen: pg.surface) -> None:
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     bb_imgs = []
     bb_accs = [a for a in range(1,11)]
-
     for r in range(1,11):
         bb_img = pg.Surface((20*r,20*r))  #surfaceを作成
         pg.draw.circle(bb_img,(225,0,0),(10*r,10*r),10*r)
         #爆弾作成
         bb_imgs.append(bb_img)  #リストに入れる
-
     return bb_img, bb_accs
-
-
-# def get_kk_imgs() -> dict[tuple[int,int],pg.Surface]:
-#     kk_dict = {
-#         (0 0) : rotozoom(kk_img,0,1.0)
-#         (+5 0) : rotozoom(kk_img,90,1.0)
-#         (+5 -5) : rotozoom(kk_img,45,1.0)
-#         (0-5) : rotozoom(kk_img,0,1.0)
-#         (0-5) : rotozoom(kk_img,0,1.0)
-#     }
-
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -72,7 +59,8 @@ def main():
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-    
+
+    bb_accs, bb_imgs = init_bb_imgs()
     bb_img = pg.Surface((20,20))
     pg.draw.circle(bb_img,(255,0,0),(10,10),10)
     bb_img.set_colorkey((0,0,0))
@@ -83,8 +71,6 @@ def main():
     vy = +5
     clock = pg.time.Clock()
     tmr = 0
-
-    bb_accs, bb_imgs = init_bb_imgs()
     
     while True:
         for event in pg.event.get():
@@ -109,10 +95,12 @@ def main():
         if check_bound(kk_rct) != (True, True):  #どっかはみ出てる
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  #先ほどの動きをキャンセルする
         screen.blit(kk_img, kk_rct)
-        
-        avx = vx*bb_accs[min(tmr//500,9)]
-        avy = vy*bb_accs[min(tmr//500,9)]
-        bb_img = bb_imgs[min(tmr//500,9)]
+
+        lst_index = min(tmr//500, 9)
+        avx = vx*bb_accs[lst_index]
+        avy = vy*bb_accs[lst_index]
+        bb_img = bb_imgs[lst_index]
+
         bb_rct.width = bb_img.get_rect().width
         bb_rct.height = bb_img.get_rect().height
        
