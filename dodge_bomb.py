@@ -8,6 +8,21 @@ WIDTH, HEIGHT = 1100, 650
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 key_dic = {pg.K_UP:(0,-5),pg.K_DOWN:(0,+5),pg.K_LEFT:(-5,0),pg.K_RIGHT:(+5,0)}
 
+
+def check_bound(rect: pg.Rect) -> tuple[bool,bool]:
+    """
+    引数：こうかとんRectか爆弾Rect
+    戻り値：タプル(横方向判定結果, 縦方向判定結果)
+    画面内ならTrue, 画面外ならFalse
+    """
+    yoko, tate = True,True
+    if rect.left < 0 or rect.right > WIDTH:
+        yoko = False
+    if rect.top < 0 or rect.bottom > HEIGHT:
+        tate = False
+    return yoko, tate
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -22,12 +37,11 @@ def main():
     bb_img.set_colorkey((0,0,0))
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(0,WIDTH),random.randint(0,HEIGHT)
-
+    vx = +5
+    vy = +5
     clock = pg.time.Clock()
     tmr = 0
     while True:
-        vx = +5
-        vy = +5
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
@@ -42,8 +56,16 @@ def main():
                 sum_mv[1] += move[1]  #縦方向移動量
         
         kk_rct.move_ip(sum_mv)
-        bb_rct.move_ip(vx,vy)
+        if check_bound(kk_rct) != (True, True):  #どっかはみ出てる
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  #先ほどの動きをキャンセルする
         screen.blit(kk_img, kk_rct)
+
+        bb_rct.move_ip(vx,vy)
+        yoko, tate = check_bound(bb_rct)
+        if not yoko:   #yoko == falseと意味は一緒
+            vx *= -1
+        if not tate:
+            vy *= -1
         screen.blit(bb_img, bb_rct)
         pg.display.update()
         tmr += 1
