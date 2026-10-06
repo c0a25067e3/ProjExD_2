@@ -41,6 +41,29 @@ def gameover(screen: pg.surface) -> None:
     time.sleep(5)
 
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    bb_imgs = []
+    bb_accs = [a for a in range(1,11)]
+
+    for r in range(1,11):
+        bb_img = pg.Surface((20*r,20*r))  #surfaceを作成
+        pg.draw.circle(bb_img,(225,0,0),(10*r,10*r),10*r)
+        #爆弾作成
+        bb_imgs.append(bb_img)  #リストに入れる
+
+    return bb_img, bb_accs
+
+
+# def get_kk_imgs() -> dict[tuple[int,int],pg.Surface]:
+#     kk_dict = {
+#         (0 0) : rotozoom(kk_img,0,1.0)
+#         (+5 0) : rotozoom(kk_img,90,1.0)
+#         (+5 -5) : rotozoom(kk_img,45,1.0)
+#         (0-5) : rotozoom(kk_img,0,1.0)
+#         (0-5) : rotozoom(kk_img,0,1.0)
+#     }
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -60,6 +83,9 @@ def main():
     vy = +5
     clock = pg.time.Clock()
     tmr = 0
+
+    bb_accs, bb_imgs = init_bb_imgs()
+    
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
@@ -83,14 +109,21 @@ def main():
         if check_bound(kk_rct) != (True, True):  #どっかはみ出てる
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  #先ほどの動きをキャンセルする
         screen.blit(kk_img, kk_rct)
-
-        bb_rct.move_ip(vx,vy)
+        
+        avx = vx*bb_accs[min(tmr//500,9)]
+        avy = vy*bb_accs[min(tmr//500,9)]
+        bb_img = bb_imgs[min(tmr//500,9)]
+        bb_rct.width = bb_img.get_rect().width
+        bb_rct.height = bb_img.get_rect().height
+       
+        bb_rct.move_ip(avx,avy)
         yoko, tate = check_bound(bb_rct)
         if not yoko:   #yoko == falseと意味は一緒
             vx *= -1
         if not tate:
             vy *= -1
         screen.blit(bb_img, bb_rct)
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
